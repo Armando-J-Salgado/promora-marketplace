@@ -17,7 +17,7 @@ class Order extends Model
     use HasFactory;
 
     public function services(): BelongsToMany {
-        return $this->belongsToMany(Service::class);
+        return $this->belongsToMany(Service::class)->withPivot('quantity');
     }
 
     public function customer(): BelongsTo {
