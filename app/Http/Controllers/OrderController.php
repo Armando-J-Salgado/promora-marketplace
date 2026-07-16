@@ -5,12 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\PromocodeEngine\PromocodeEngine;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private PromocodeEngine $promocodeEngine, //Agregar en el App provider para singleton
+    ) {}
+
     public function validate()
     {
-        //
+        //Aquí hace falta definir la orden y el promocode, llamar al engine.
     }
     /**
      * Display a listing of the resource.
