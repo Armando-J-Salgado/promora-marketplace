@@ -8,6 +8,10 @@ use App\Http\Requests\UpdateOrderRequest;
 
 class OrderController extends Controller
 {
+    public function validate()
+    {
+        //
+    }
     /**
      * Display a listing of the resource.
      */
