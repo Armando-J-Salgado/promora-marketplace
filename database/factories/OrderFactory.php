@@ -18,7 +18,10 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'status'      => 'pending',
+            'subtotal'    => fake()->randomFloat(2, 50, 500),
+            'total'       => fake()->randomFloat(2, 50, 500),
+            'customer_id' => \App\Models\Customer::factory(),
         ];
     }
 }
