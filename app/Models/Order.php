@@ -19,7 +19,7 @@ class Order extends Model implements OrderableInterface
     use HasFactory;
 
     public function services(): BelongsToMany {
-        return $this->belongsToMany(Service::class)->withPivot('quantity');
+        return $this->belongsToMany(Service::class, 'service_order')->withPivot('quantity');
     }
 
     public function customer(): BelongsTo {
@@ -31,15 +31,24 @@ class Order extends Model implements OrderableInterface
     }
 
     public function getSubtotal(): float {
+        $subtotal = 0;
+
+        foreach($this->services as $service) {
+            $subtotal += $service->pivot->quantity * $service->price;
+        }
+
+        $this->subtotal = $subtotal;
+        $this->save();
+
         return $this->subtotal;
     }
 
     public function getOrderContext(): OrderContext {
         $categories = [];
         foreach($this->services as $service) {
-            $categories[] = $service->id;
+            $categories[] = $service->category->id;
         }
-        $context = new OrderContext($this->customer,$categories, $this->customer->orders);
+        $context = new OrderContext($this->customer,$categories, $this->customer->orders->all());
         return $context;
     }
 }
