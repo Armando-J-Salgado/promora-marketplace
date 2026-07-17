@@ -22,7 +22,6 @@ class PromocodeEngine
 
         if (! $isValid) {
             $this->logger->log("Promocode inválido: #{$promocode->id} para orden #{$order->id}");
-
             return false;
         }
 

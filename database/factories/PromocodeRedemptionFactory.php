@@ -18,7 +18,9 @@ class PromocodeRedemptionFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'discount_amount' => fake()->randomFloat(2, 5, 100),
+            'promocode_id'    => \App\Models\Promocode::factory(),
+            'order_id'        => \App\Models\Order::factory(),
         ];
     }
 }

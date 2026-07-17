@@ -18,7 +18,13 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name'      => fake()->word(),
+            'category_id' => null,
         ];
+    }
+
+    public function withParent(\App\Models\Category $parent): static
+    {
+        return $this->state(['category_id' => $parent->id]);
     }
 }
