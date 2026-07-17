@@ -6,7 +6,6 @@ class Logger
 {
     private static ?Logger $instance = null;
 
-    /** @var array<string> */
     private array $logs = [];
 
     private function __construct() {}
