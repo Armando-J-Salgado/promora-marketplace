@@ -21,8 +21,8 @@ test('el logger registra cuando una validacion es exitosa', function () {
     $validationService = Mockery::mock(PromocodeValidationService::class);
     $calculatorService = Mockery::mock(PriceCalculatorService::class);
 
-    $order->shouldReceive('getKey')->andReturn(1);
-    $promocode->shouldReceive('getKey')->andReturn('PROMO10');
+    $order->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $promocode->shouldReceive('getAttribute')->with('id')->andReturn('PROMO10');
     $validationService->shouldReceive('validate')->once()->andReturn(true);
     $calculatorService->shouldReceive('calculatePrice')->once()->andReturn(10.0);
 
@@ -44,17 +44,13 @@ test('el logger registra cuando una validacion falla', function () {
     $validationService = Mockery::mock(PromocodeValidationService::class);
     $calculatorService = Mockery::mock(PriceCalculatorService::class);
 
-    $order->shouldReceive('getKey')->andReturn(1);
-    $promocode->shouldReceive('getKey')->andReturn('PROMO10');
-    $validationService->shouldReceive('validate')->once()->andThrow(new Exception('invalid_code'));
+    $order->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $promocode->shouldReceive('getAttribute')->with('id')->andReturn('PROMO10');
+    $validationService->shouldReceive('validate')->once()->andReturn(false);
     $calculatorService->shouldReceive('calculatePrice')->never();
 
     $engine = new PromocodeEngine($validationService, $calculatorService, $logger);
-
-    try {
-        $engine->validateCode($order, $promocode);
-    } catch (Exception) {
-    }
+    $engine->validateCode($order, $promocode);
 
     $reflection = new ReflectionClass($logger);
     $logs = $reflection->getProperty('logs');

@@ -18,17 +18,18 @@ class PromocodeEngine
 
     public function validateCode(Order $order, Promocode $promocode): bool
     {
-        $this->logger->log("Validating promocode [{$promocode->getKey()}] for order [{$order->getKey()}]");
+        $isValid = $this->validationService->validate($order, $promocode);
 
-        try {
-            $this->validationService->validate($order, $promocode);
-            $this->priceCalculatorService->calculatePrice($order, $promocode);
-            $this->logger->log("Promocode [{$promocode->getKey()}] validated successfully");
+        if (! $isValid) {
+            $this->logger->log("Promocode inválido: #{$promocode->id} para orden #{$order->id}");
 
-            return true;
-        } catch (\Exception $exception) {
-            $this->logger->log("Promocode [{$promocode->getKey()}] validation failed: {$exception->getMessage()}");
-            throw $exception;
+            return false;
         }
+
+        $finalPrice = $this->priceCalculatorService->calculatePrice($order, $promocode);
+
+        $this->logger->log("Promocode #{$promocode->id} aplicado a orden #{$order->id}. Precio final: {$finalPrice}");
+
+        return true;
     }
 }
