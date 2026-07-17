@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Validations;
+namespace App\Factories;
 
 use InvalidArgumentException;
+use App\Validations\PromocodeValidationHandler;
 use App\Validations\ExistenceValidator;
 use App\Validations\StateValidator;
 use App\Validations\ValidityValidator;
