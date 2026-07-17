@@ -2,16 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        $desarrollo = Category::factory()->create(['name' => 'Desarrollo']);
+        Category::factory()->withParent($desarrollo)->create(['name' => 'Desarrollo Web']);
+        Category::factory()->withParent($desarrollo)->create(['name' => 'Desarrollo Móvil']);
+
+        $diseno = Category::factory()->create(['name' => 'Diseño']);
+        Category::factory()->withParent($diseno)->create(['name' => 'Diseño UI/UX']);
+
+        Category::factory()->create(['name' => 'Marketing Digital']);
     }
 }

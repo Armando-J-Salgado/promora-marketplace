@@ -2,16 +2,23 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Customer;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        Customer::factory()->create([
+            'name' => 'Juan Pérez',
+            'email' => 'juan@example.com',
+        ]);
+
+        Customer::factory()->create([
+            'name' => 'María López',
+            'email' => 'maria@example.com',
+        ]);
+
+        Customer::factory(3)->create();
     }
 }
