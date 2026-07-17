@@ -8,6 +8,7 @@ use App\Models\Promocode;
 abstract class DiscountTemplate
 {
     protected Order $order;
+
     protected Promocode $promocode;
 
     public function __construct(Order $order, Promocode $promocode)
@@ -18,20 +19,13 @@ abstract class DiscountTemplate
 
     public function calculatePrice(): float
     {
-        $subtotal = $this->calculate();
+        $this->order->getSubtotal();
 
         if (! $this->validate()) {
             return 0.0;
         }
 
-        $discount = $this->applyDiscount();
-
-        return $this->applyPostCalculationRules($discount, $subtotal);
-    }
-
-    protected function calculate(): float
-    {
-        return $this->order->subtotal;
+        return $this->applyDiscount();
     }
 
     protected function validate(): bool
@@ -43,16 +37,4 @@ abstract class DiscountTemplate
     Paso que varia porque calcula el descuento según el tipo
      */
     abstract protected function applyDiscount(): float;
-
-
-    protected function applyPostCalculationRules(float $discount, float $subtotal): float
-    {
-        $rules = $this->promocode->rules ?? [];
-
-        if (isset($rules['max_discount_amount'])) {
-            $discount = min($discount, (float) $rules['max_discount_amount']);
-        }
-
-        return min($discount, $subtotal);
-    }
 }

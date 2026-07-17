@@ -22,7 +22,7 @@ it('returns true when promocode is valid', function () {
             ->andReturn(true);
     });
 
-    $response = $this->postJson("/v1/orders/{$order->id}/promocode/{$promocode->id}");
+    $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
     $response->assertOk()
         ->assertJson([
@@ -44,7 +44,7 @@ it('returns false when promocode is invalid', function () {
             ->andReturn(false);
     });
 
-    $response = $this->postJson("/v1/orders/{$order->id}/promocode/{$promocode->id}");
+    $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
     $response->assertOk()
         ->assertJson([
@@ -55,7 +55,7 @@ it('returns false when promocode is invalid', function () {
 it('returns 404 when order does not exist', function () {
     $promocode = Promocode::factory()->create();
 
-    $response = $this->postJson("/v1/orders/999999/promocode/{$promocode->id}");
+    $response = $this->postJson("/api/v1/orders/999999/promocode/{$promocode->id}");
 
     $response->assertNotFound();
 });
@@ -63,7 +63,7 @@ it('returns 404 when order does not exist', function () {
 it('returns 404 when promocode does not exist', function () {
     $order = Order::factory()->create();
 
-    $response = $this->postJson("/v1/orders/{$order->id}/promocode/999999");
+    $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/999999");
 
     $response->assertNotFound();
 });
@@ -81,6 +81,6 @@ it('calls promocode engine with correct order and promocode', function () {
             ->andReturn(true);
     });
 
-    $this->postJson("/v1/orders/{$order->id}/promocode/{$promocode->id}")
+    $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}")
         ->assertOk();
 });
