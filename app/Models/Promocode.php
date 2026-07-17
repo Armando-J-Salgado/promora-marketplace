@@ -15,6 +15,19 @@ class Promocode extends Model
     /** @use HasFactory<\Database\Factories\PromocodeFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'type',
+        'rules',
+        'status',
+        'value',
+    ];
+
+    protected $casts = [
+        'rules'=> 'array',
+        'activation_date' => 'datetime',
+        'expiration_date'=> 'datetime',
+    ];
+
     public function allowedCustomers(): BelongsToMany {
         return $this->belongsToMany(Customer::class);
     }
