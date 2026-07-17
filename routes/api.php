@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('v1/orders/{order}/promocode/{promocode}', [OrderController::class, 'validate']);
+Route::prefix('v1')->group(function () {
+    Route::get('orders', [OrderController::class, 'index']);
+    Route::post('orders', [OrderController::class, 'store']);
+    Route::get('orders/{order}', [OrderController::class, 'show']);
+    Route::post('orders/{order}/promocode/{promocode}', [OrderController::class, 'validate']);
+});

@@ -73,7 +73,7 @@ it('returns 404 when the promocode does not exist', function () {
     $response->assertNotFound();
 });
 
-it('returns 500 when the promocode has expired', function () {
+it('returns 422 when the promocode has expired', function () {
     $promocode = Promocode::factory()->expired()->create([
         'rules' => ['validity' => true, 'state' => true],
     ]);
@@ -82,10 +82,11 @@ it('returns 500 when the promocode has expired', function () {
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the promocode is paused', function () {
+it('returns 422 when the promocode is paused', function () {
     $promocode = Promocode::factory()->paused()->create([
         'rules' => ['validity' => true, 'state' => true],
     ]);
@@ -94,10 +95,11 @@ it('returns 500 when the promocode is paused', function () {
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the promocode is in draft state', function () {
+it('returns 422 when the promocode is in draft state', function () {
     $promocode = Promocode::factory()->draft()->create([
         'rules' => ['validity' => true, 'state' => true],
     ]);
@@ -106,10 +108,11 @@ it('returns 500 when the promocode is in draft state', function () {
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the order subtotal is below the min_purchase_amount', function () {
+it('returns 422 when the order subtotal is below the min_purchase_amount', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 20.0]);
 
@@ -120,10 +123,11 @@ it('returns 500 when the order subtotal is below the min_purchase_amount', funct
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the global usage limit has been reached', function () {
+it('returns 422 when the global usage limit has been reached', function () {
     $promocode = Promocode::factory()->withGlobalUsageLimit(1)->create();
 
     PromocodeRedemption::factory()->create(['promocode_id' => $promocode->id]);
@@ -132,10 +136,11 @@ it('returns 500 when the global usage limit has been reached', function () {
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the promocode is restricted and user is not allowed', function () {
+it('returns 422 when the promocode is restricted and user is not allowed', function () {
     $owner = Customer::factory()->create();
     $otherCustomer = Customer::factory()->create();
 
@@ -148,10 +153,11 @@ it('returns 500 when the promocode is restricted and user is not allowed', funct
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when the category is not eligible for the promocode', function () {
+it('returns 422 when the category is not eligible for the promocode', function () {
     $allowedCategory = Category::factory()->create();
     $otherCategory = Category::factory()->create();
     $customer = Customer::factory()->create();
@@ -167,14 +173,14 @@ it('returns 500 when the category is not eligible for the promocode', function (
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
 
-it('returns 500 when first_order_only and buyer already has order history', function () {
+it('returns 422 when first_order_only and buyer already has order history', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 100.0]);
 
-    // Crear historial de órdenes previas
     Order::factory()->create(['customer_id' => $customer->id, 'status' => 'paid']);
 
     $promocode = Promocode::factory()
@@ -186,5 +192,6 @@ it('returns 500 when first_order_only and buyer already has order history', func
 
     $response = $this->postJson("/api/v1/orders/{$order->id}/promocode/{$promocode->id}");
 
-    $response->assertInternalServerError();
+    $response->assertUnprocessable()
+        ->assertJson(['valid' => false]);
 });
