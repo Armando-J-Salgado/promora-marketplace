@@ -89,7 +89,7 @@ class PromocodeFactory extends Factory
     {
         return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['first_order_only' => true])]);
     }
-}
+
     public function draft(): static
     {
         return $this->state(fn (array $attributes) => ['status' => 'draft']);
