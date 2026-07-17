@@ -26,6 +26,4 @@ class Promocode extends Model
     public function promocodeRedemptions(): HasMany {
         return $this->hasMany(PromocodeRedemption::class);
     }
-
-
 }
