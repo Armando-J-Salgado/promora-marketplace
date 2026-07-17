@@ -21,13 +21,13 @@ class PromocodeEngine
         $isValid = $this->validationService->validate($order, $promocode);
 
         if (! $isValid) {
-            $this->logger->log("Promocode inválido: {$promocode->code} para orden #{$order->id}");
+            $this->logger->log("Promocode inválido: #{$promocode->id} para orden #{$order->id}");
             return false;
         }
 
         $finalPrice = $this->priceCalculatorService->calculatePrice($order, $promocode);
 
-        $this->logger->log("Promocode {$promocode->code} aplicado a orden #{$order->id}. Precio final: {$finalPrice}");
+        $this->logger->log("Promocode #{$promocode->id} aplicado a orden #{$order->id}. Precio final: {$finalPrice}");
 
         return true;
     }
