@@ -18,12 +18,12 @@ class PromocodeFactory extends Factory
     public function definition(): array
     {
         return [
-            'type'            => 'percentage',
-            'rules'           => ['validity' => true, 'state' => true],
-            'status'          => 'active',
-            'value'           => fake()->randomFloat(2, 5, 50),
+            'type' => $this->faker->randomElement(['fixed', 'percent', 'tiered']),
+            'rules' => ['validity' => true, 'state' => true],
+            'status' => 'active',
+            'value' => $this->faker->randomFloat(2, 5, 50),
             'activation_date' => now()->subDay(),
-            'expiration_date' => now()->addDays(30),
+            'expiration_date' => now()->addMonth(),
         ];
     }
 
@@ -35,10 +35,15 @@ class PromocodeFactory extends Factory
         ]);
     }
 
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => ['status' => 'paused']);
+    }
+
     public function expired(): static
     {
-        return $this->state([
-            'activation_date' => now()->subDays(30),
+        return $this->state(fn (array $attributes) => [
+            'activation_date' => now()->subMonths(2),
             'expiration_date' => now()->subDay(),
         ]);
     }
@@ -83,5 +88,26 @@ class PromocodeFactory extends Factory
     public function firstOrderOnly(): static
     {
         return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['first_order_only' => true])]);
+    }
+}
+    public function draft(): static
+    {
+        return $this->state(fn (array $attributes) => ['status' => 'draft']);
+    }
+
+    public function fixed(float $value = 10.0): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'fixed',
+            'value' => $value,
+        ]);
+    }
+
+    public function percent(float $value = 15.0): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'percent',
+            'value' => $value,
+        ]);
     }
 }

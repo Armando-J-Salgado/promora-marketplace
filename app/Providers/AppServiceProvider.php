@@ -11,7 +11,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PromocodeEngine::class, function ($app) {
+            return new PromocodeEngine(
+                $app->make(PromocodeValidationService::class),
+                $app->make(PriceCalculatorService::class),
+                $app->make(Logger::class),
+            );
+        });
     }
 
     /**
