@@ -4,6 +4,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Promocode;
 use App\Models\Service;
+use App\Models\Tier;
 use App\Services\PriceCalculatorService;
 
 function priceCalculator(): PriceCalculatorService
@@ -75,24 +76,26 @@ it('returns 0 when fixed discount exceeds subtotal', function () {
     expect($result)->toBe(0.0);
 });
 
-it('calculates final price with tiered discount (uses promocode value)', function () {
+it('calculates final price with tiered discount (uses tier percentage)', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 100.0]);
 
-    $promocode = Promocode::factory()->create([
-        'type' => 'tiered',
-        'value' => 15.0,
+    $promocode = Promocode::factory()->tiered()->create([
         'rules' => ['validity' => true, 'state' => true],
         'status' => 'active',
         'activation_date' => now()->subDay(),
         'expiration_date' => now()->addMonth(),
     ]);
 
+    // Tramo base: 0+ órdenes → 15%
+    Tier::factory()->withMinOrders(0, 15.0)->create(['promocode_id' => $promocode->id]);
+
     $order = Order::factory()->create(['customer_id' => $customer->id]);
     $order->services()->attach($service->id, ['quantity' => 1]);
 
     $result = priceCalculator()->calculatePrice($order, $promocode);
 
+    // descuento = 100 * 0.15 = 15 → total = 100 - 15 = 85
     expect($result)->toBe(85.0);
 });
 
