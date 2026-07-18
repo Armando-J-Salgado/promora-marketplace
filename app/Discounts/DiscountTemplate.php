@@ -2,8 +2,10 @@
 
 namespace App\Discounts;
 
+use App\Factories\ValidationFactory;
 use App\Models\Order;
 use App\Models\Promocode;
+use InvalidArgumentException;
 
 abstract class DiscountTemplate
 {
@@ -29,26 +31,30 @@ abstract class DiscountTemplate
     {
         $rules = $this->promocode->rules ?? [];
 
-        if (isset($rules['global_amount_limit'])) {
-            $remaining = $rules['global_amount_limit']
-                - $this->promocode->promocodeRedemptions()->sum('discount_amount');
+        $postCalculationRules = ['max_discount_amount', 'global_amount_limit'];
 
-            if ($remaining <= 0) {
-                throw new \InvalidArgumentException('Se alcanzó el límite de monto global acumulado');
+        foreach ($postCalculationRules as $rule) {
+            if (! isset($rules[$rule])) {
+                continue;
             }
 
-            $discount = min($discount, $remaining);
-        }
+            $validator = ValidationFactory::make($rule, $discount);
 
-        if (isset($rules['max_discount_amount'])) {
-            $discount = min($discount, $rules['max_discount_amount']);
+            try {
+                $validator->handle($this->order, $this->promocode);
+            } catch (InvalidArgumentException $e) {
+                if ($rule === 'global_amount_limit') {
+                    throw $e;
+                }
+
+                if ($rule === 'max_discount_amount') {
+                    $discount = (float) $rules['max_discount_amount'];
+                }
+            }
         }
 
         return $discount;
     }
 
-    /*
-    Paso que varia porque calcula el descuento según el tipo
-     */
     abstract protected function applyDiscount(): float;
 }

@@ -8,7 +8,7 @@ use App\Models\Promocode;
 use App\Models\PromocodeRedemption;
 use App\Models\Service;
 
-it('calculates discount and applies max_discount_amount post-calc rule', function () {
+it('caps discount to max_discount_amount when exceeded', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 200.0]);
 
@@ -23,13 +23,11 @@ it('calculates discount and applies max_discount_amount post-calc rule', functio
     expect($discount->calculatePrice())->toBe(30.0);
 });
 
-it('does not cap discount when max_discount_amount is not configured', function () {
+it('does not throw when discount is within max_discount_amount', function () {
     $customer = Customer::factory()->create();
-    $service = Service::factory()->create(['price' => 200.0]);
+    $service = Service::factory()->create(['price' => 100.0]);
 
-    $promocode = Promocode::factory()->percent(50.0)->create([
-        'rules' => ['validity' => true, 'state' => true],
-    ]);
+    $promocode = Promocode::factory()->percent(10.0)->withMaxDiscount(50.0)->create();
 
     $order = Order::factory()->create(['customer_id' => $customer->id]);
     $order->services()->attach($service->id, ['quantity' => 1]);
@@ -37,7 +35,7 @@ it('does not cap discount when max_discount_amount is not configured', function 
 
     $discount = new PercentageDiscount($order, $promocode);
 
-    expect($discount->calculatePrice())->toBe(100.0);
+    expect($discount->calculatePrice())->toBe(10.0);
 });
 
 it('returns 0 when subtotal is 0 because formula yields 0', function () {
@@ -64,21 +62,6 @@ it('returns 0 when promocode value is 0', function () {
     $discount = new PercentageDiscount($order, $promocode);
 
     expect($discount->calculatePrice())->toBe(0.0);
-});
-
-it('max_discount_amount does not increase discount when cap is higher than calculated', function () {
-    $customer = Customer::factory()->create();
-    $service = Service::factory()->create(['price' => 100.0]);
-
-    $promocode = Promocode::factory()->percent(10.0)->withMaxDiscount(500.0)->create();
-
-    $order = Order::factory()->create(['customer_id' => $customer->id]);
-    $order->services()->attach($service->id, ['quantity' => 1]);
-    $order->getSubtotal();
-
-    $discount = new PercentageDiscount($order, $promocode);
-
-    expect($discount->calculatePrice())->toBe(10.0);
 });
 
 it('PercentageDiscount calculates subtotal * (value / 100)', function () {
@@ -126,11 +109,32 @@ it('DefaultDiscount always returns 0 as discount', function () {
     expect($discount->calculatePrice())->toBe(0.0);
 });
 
-it('throws when global_amount_limit has been fully consumed', function () {
+it('throws when global_amount_limit has been exceeded', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 100.0]);
 
     $promocode = Promocode::factory()->percent(20.0)->withGlobalAmountLimit(50.0)->create();
+
+    PromocodeRedemption::factory()->create([
+        'promocode_id' => $promocode->id,
+        'discount_amount' => 40.0,
+    ]);
+
+    $order = Order::factory()->create(['customer_id' => $customer->id]);
+    $order->services()->attach($service->id, ['quantity' => 1]);
+    $order->getSubtotal();
+
+    $discount = new PercentageDiscount($order, $promocode);
+
+    expect(fn () => $discount->calculatePrice())
+        ->toThrow(InvalidArgumentException::class, 'El código promocional supera su presupuesto máximo de descuentos');
+});
+
+it('does not throw when global_amount_limit has remaining budget', function () {
+    $customer = Customer::factory()->create();
+    $service = Service::factory()->create(['price' => 100.0]);
+
+    $promocode = Promocode::factory()->percent(10.0)->withGlobalAmountLimit(200.0)->create();
 
     PromocodeRedemption::factory()->create([
         'promocode_id' => $promocode->id,
@@ -143,37 +147,16 @@ it('throws when global_amount_limit has been fully consumed', function () {
 
     $discount = new PercentageDiscount($order, $promocode);
 
-    expect(fn () => $discount->calculatePrice())
-        ->toThrow(InvalidArgumentException::class, 'Se alcanzó el límite de monto global acumulado');
+    expect($discount->calculatePrice())->toBe(10.0);
 });
 
-it('caps discount to remaining global_amount_limit', function () {
-    $customer = Customer::factory()->create();
-    $service = Service::factory()->create(['price' => 200.0]);
-
-    $promocode = Promocode::factory()->percent(50.0)->withGlobalAmountLimit(80.0)->create();
-
-    PromocodeRedemption::factory()->create([
-        'promocode_id' => $promocode->id,
-        'discount_amount' => 60.0,
-    ]);
-
-    $order = Order::factory()->create(['customer_id' => $customer->id]);
-    $order->services()->attach($service->id, ['quantity' => 1]);
-    $order->getSubtotal();
-
-    $discount = new PercentageDiscount($order, $promocode);
-
-    expect($discount->calculatePrice())->toBe(20.0);
-});
-
-it('global_amount_limit and max_discount_amount apply together taking the lowest', function () {
+it('max_discount_amount caps first then global_amount_limit passes', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 500.0]);
 
     $promocode = Promocode::factory()->percent(50.0)
-        ->withGlobalAmountLimit(200.0)
         ->withMaxDiscount(100.0)
+        ->withGlobalAmountLimit(200.0)
         ->create();
 
     $order = Order::factory()->create(['customer_id' => $customer->id]);
@@ -182,5 +165,31 @@ it('global_amount_limit and max_discount_amount apply together taking the lowest
 
     $discount = new PercentageDiscount($order, $promocode);
 
+    // 50% de 500 = 250, cap a 100 por max_discount_amount, global_amount_limit (200) no se excede
     expect($discount->calculatePrice())->toBe(100.0);
+});
+
+it('max_discount_amount caps but global_amount_limit still throws', function () {
+    $customer = Customer::factory()->create();
+    $service = Service::factory()->create(['price' => 500.0]);
+
+    $promocode = Promocode::factory()->percent(50.0)
+        ->withMaxDiscount(100.0)
+        ->withGlobalAmountLimit(150.0)
+        ->create();
+
+    PromocodeRedemption::factory()->create([
+        'promocode_id' => $promocode->id,
+        'discount_amount' => 100.0,
+    ]);
+
+    $order = Order::factory()->create(['customer_id' => $customer->id]);
+    $order->services()->attach($service->id, ['quantity' => 1]);
+    $order->getSubtotal();
+
+    $discount = new PercentageDiscount($order, $promocode);
+
+    // 50% de 500 = 250, cap a 100 por max_discount_amount, pero 100 + 100 (ya redimido) > 150 (limit)
+    expect(fn () => $discount->calculatePrice())
+        ->toThrow(InvalidArgumentException::class, 'El código promocional supera su presupuesto máximo de descuentos');
 });
