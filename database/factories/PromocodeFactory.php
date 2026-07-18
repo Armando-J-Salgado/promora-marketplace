@@ -57,37 +57,42 @@ class PromocodeFactory extends Factory
 
     public function withMinPurchase(float $amount): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['min_purchase_amount' => $amount])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['min_purchase_amount' => $amount])]);
     }
 
     public function withGlobalUsageLimit(int $limit): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['global_usage_limit' => $limit])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['global_usage_limit' => $limit])]);
     }
 
     public function withUserUsageLimit(int $limit): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['user_usage_limit' => $limit])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['user_usage_limit' => $limit])]);
     }
 
     public function withGlobalAmountLimit(float $limit): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['global_amount_limit' => $limit])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['global_amount_limit' => $limit])]);
     }
 
     public function withMaxDiscount(float $max): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['max_discount_amount' => $max])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['max_discount_amount' => $max])]);
     }
 
     public function withEligibleCategories(array $categoryIds): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['elegible_categories' => $categoryIds])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['elegible_categories' => $categoryIds])]);
     }
 
     public function firstOrderOnly(): static
     {
-        return $this->state(fn($a) => ['rules' => array_merge($a['rules'] ?? [], ['first_order_only' => true])]);
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['first_order_only' => true])]);
+    }
+
+    public function restrictedUsage(): static
+    {
+        return $this->state(fn ($a) => ['rules' => array_merge($a['rules'] ?? [], ['restricted_usage' => true])]);
     }
 
     public function draft(): static

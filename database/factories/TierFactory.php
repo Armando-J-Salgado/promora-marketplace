@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Promocode;
 use App\Models\Tier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,9 @@ class TierFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'minimum_orders' => $this->faker->randomElement([0, 3, 10]),
+            'discount_value' => $this->faker->randomFloat(2, 5, 15),
+            'promocode_id' => Promocode::factory(),
         ];
     }
 }
