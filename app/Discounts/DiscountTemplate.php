@@ -4,7 +4,6 @@ namespace App\Discounts;
 
 use App\Models\Order;
 use App\Models\Promocode;
-use App\Models\PromocodeRedemption;
 
 abstract class DiscountTemplate
 {
@@ -32,7 +31,7 @@ abstract class DiscountTemplate
 
         if (isset($rules['global_amount_limit'])) {
             $remaining = $rules['global_amount_limit']
-                - PromocodeRedemption::where('promocode_id', $this->promocode->id)->sum('discount_amount');
+                - $this->promocode->promocodeRedemptions()->sum('discount_amount');
 
             if ($remaining <= 0) {
                 throw new \InvalidArgumentException('Se alcanzó el límite de monto global acumulado');
