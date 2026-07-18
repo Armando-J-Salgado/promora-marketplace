@@ -22,6 +22,11 @@ abstract class DiscountTemplate
     public function calculatePrice(): float
     {
         $this->order->getSubtotal();
+
+        if ($this->order->subtotal <= 0) {
+            return 0.0;
+        }
+
         $discount = $this->applyDiscount();
 
         return $this->validate($discount, $this->order->subtotal);

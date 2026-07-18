@@ -4,19 +4,6 @@ namespace App\Discounts;
 
 class TieredDiscount extends DiscountTemplate
 {
-    /**
-     * Sobreescribe validate() para verificar subtotal > 0.
-     * Si el subtotal es 0, no aplica descuento.
-     * Luego delega a la validación base (global_amount_limit y max_discount_amount).
-     */
-    protected function validate(float $discount, float $subtotal): float
-    {
-        if ($subtotal <= 0) {
-            return 0.0;
-        }
-
-        return parent::validate($discount, $subtotal);
-    }
 
     /**
      * descuento = subtotal × (porcentaje_del_tramo / 100)
