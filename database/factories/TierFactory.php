@@ -18,7 +18,16 @@ class TierFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'minimum_orders' => 0,
+            'discount_value' => 5.00,
         ];
+    }
+
+    public function withMinOrders(int $minOrders, float $discountValue): static
+    {
+        return $this->state([
+            'minimum_orders' => $minOrders,
+            'discount_value' => $discountValue,
+        ]);
     }
 }

@@ -5,6 +5,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Promocode;
 use App\Models\Service;
+use App\Models\Tier;
 
 it('percent discount created by factory calculates correct amount', function () {
     $customer = Customer::factory()->create();
@@ -37,7 +38,10 @@ it('fixed discount created by factory calculates correct amount', function () {
 it('tiered discount created by factory calculates correct amount', function () {
     $customer = Customer::factory()->create();
     $service = Service::factory()->create(['price' => 100.0]);
-    $promocode = Promocode::factory()->create(['type' => 'tiered', 'value' => 20.0]);
+    $promocode = Promocode::factory()->tiered()->create();
+
+    // Tramo base: 0+ órdenes → 20%
+    Tier::factory()->withMinOrders(0, 20.0)->create(['promocode_id' => $promocode->id]);
 
     $order = Order::factory()->create(['customer_id' => $customer->id]);
     $order->services()->attach($service->id, ['quantity' => 1]);
@@ -45,6 +49,7 @@ it('tiered discount created by factory calculates correct amount', function () {
 
     $discount = (new DiscountFactory)->make($promocode, $order);
 
+    // subtotal=100, tramo=20% → 20.0
     expect($discount->calculatePrice())->toBe(20.0);
 });
 
