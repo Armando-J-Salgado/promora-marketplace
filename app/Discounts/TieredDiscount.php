@@ -5,13 +5,17 @@ namespace App\Discounts;
 class TieredDiscount extends DiscountTemplate
 {
     /**
-     * obreescribe validate() para solo verificar subtotal > 0,
-     * ya que el tipo tiered no usa $promocode->value
-     * eso pertenece a la lógica de tramos.
+     * Sobreescribe validate() para verificar subtotal > 0.
+     * Si el subtotal es 0, no aplica descuento.
+     * Luego delega a la validación base (global_amount_limit y max_discount_amount).
      */
-    protected function validate(): bool
+    protected function validate(float $discount, float $subtotal): float
     {
-        return $this->order->subtotal > 0;
+        if ($subtotal <= 0) {
+            return 0.0;
+        }
+
+        return parent::validate($discount, $subtotal);
     }
 
     /**

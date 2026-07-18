@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Promocode;
 use App\PromocodeEngine\PromocodeEngine;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 class OrderController extends Controller
@@ -38,14 +38,9 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreOrderRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'services' => 'required|array|min:1',
-            'services.*.id' => 'required|exists:services,id',
-            'services.*.quantity' => 'required|integer|min:1',
-        ]);
+        $validated = $request->validated();
 
         $order = Order::create([
             'customer_id' => $validated['customer_id'],

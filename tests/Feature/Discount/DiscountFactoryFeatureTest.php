@@ -1,6 +1,6 @@
 <?php
 
-use App\Discounts\DiscountFactory;
+use App\Factories\DiscountFactory;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Promocode;

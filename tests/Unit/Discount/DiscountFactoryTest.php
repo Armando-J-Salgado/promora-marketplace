@@ -1,11 +1,11 @@
 <?php
 
 use App\Discounts\DefaultDiscount;
-use App\Discounts\DiscountFactory;
 use App\Discounts\DiscountTemplate;
 use App\Discounts\FixedDiscount;
 use App\Discounts\PercentageDiscount;
 use App\Discounts\TieredDiscount;
+use App\Factories\DiscountFactory;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Promocode;

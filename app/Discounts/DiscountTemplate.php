@@ -4,6 +4,7 @@ namespace App\Discounts;
 
 use App\Models\Order;
 use App\Models\Promocode;
+use App\Models\PromocodeRedemption;
 
 abstract class DiscountTemplate
 {
@@ -20,17 +21,31 @@ abstract class DiscountTemplate
     public function calculatePrice(): float
     {
         $this->order->getSubtotal();
+        $discount = $this->applyDiscount();
 
-        if (! $this->validate()) {
-            return 0.0;
-        }
-
-        return $this->applyDiscount();
+        return $this->validate($discount, $this->order->subtotal);
     }
 
-    protected function validate(): bool
+    protected function validate(float $discount, float $subtotal): float
     {
-        return $this->order->subtotal > 0 && $this->promocode->value > 0;
+        $rules = $this->promocode->rules ?? [];
+
+        if (isset($rules['global_amount_limit'])) {
+            $remaining = $rules['global_amount_limit']
+                - PromocodeRedemption::where('promocode_id', $this->promocode->id)->sum('discount_amount');
+
+            if ($remaining <= 0) {
+                throw new \InvalidArgumentException('Se alcanzó el límite de monto global acumulado');
+            }
+
+            $discount = min($discount, $remaining);
+        }
+
+        if (isset($rules['max_discount_amount'])) {
+            $discount = min($discount, $rules['max_discount_amount']);
+        }
+
+        return $discount;
     }
 
     /*
