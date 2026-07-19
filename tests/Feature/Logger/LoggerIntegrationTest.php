@@ -22,6 +22,7 @@ test('el logger registra cuando una validacion es exitosa', function () {
     $calculatorService = Mockery::mock(PriceCalculatorService::class);
 
     $order->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $order->shouldReceive('getId')->andReturn(1);
     $promocode->shouldReceive('getAttribute')->with('id')->andReturn('PROMO10');
     $validationService->shouldReceive('validate')->once()->andReturn(true);
     $calculatorService->shouldReceive('calculatePrice')->once()->andReturn(10.0);
@@ -45,6 +46,7 @@ test('el logger registra cuando una validacion falla', function () {
     $calculatorService = Mockery::mock(PriceCalculatorService::class);
 
     $order->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $order->shouldReceive('getId')->andReturn(1);
     $promocode->shouldReceive('getAttribute')->with('id')->andReturn('PROMO10');
     $validationService->shouldReceive('validate')->once()->andReturn(false);
     $calculatorService->shouldReceive('calculatePrice')->never();

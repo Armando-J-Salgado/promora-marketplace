@@ -9,6 +9,6 @@ class FixedDiscount extends DiscountTemplate
      */
     protected function applyDiscount(): float
     {
-        return min($this->promocode->value, $this->order->subtotal);
+        return min($this->promocode->value, $this->getSubtotal());
     }
 }

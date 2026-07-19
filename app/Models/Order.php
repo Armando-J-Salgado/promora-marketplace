@@ -62,4 +62,9 @@ class Order extends Model implements OrderableInterface
 
         return $context;
     }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 }

@@ -4,7 +4,6 @@ namespace App\Discounts;
 
 class TieredDiscount extends DiscountTemplate
 {
-
     /**
      * descuento = subtotal × (porcentaje_del_tramo / 100)
      *
@@ -19,7 +18,7 @@ class TieredDiscount extends DiscountTemplate
         $historicalOrderCount = $context->buyerProfile
             ->orders()
             ->whereNotIn('status', ['cancelled', 'draft'])
-            ->where('id', '!=', $this->order->id)
+            ->where('id', '!=', $this->order->getId())
             ->count();
 
         $tier = $this->promocode
@@ -32,6 +31,6 @@ class TieredDiscount extends DiscountTemplate
             return 0.0;
         }
 
-        return $this->order->subtotal * ($tier->discount_value / 100);
+        return $this->getSubtotal() * ($tier->discount_value / 100);
     }
 }

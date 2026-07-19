@@ -3,8 +3,8 @@
 namespace App\PromocodeEngine;
 
 use App\Logger\Logger;
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 use App\Services\PriceCalculatorService;
 use App\Services\PromocodeValidationService;
 
@@ -16,18 +16,19 @@ class PromocodeEngine
         private Logger $logger,
     ) {}
 
-    public function validateCode(Order $order, Promocode $promocode): bool
+    public function validateCode(OrderableInterface $order, Promocode $promocode): bool
     {
         $isValid = $this->validationService->validate($order, $promocode);
 
         if (! $isValid) {
-            $this->logger->log("Promocode inválido: #{$promocode->id} para orden #{$order->id}");
+            $this->logger->log("Promocode inválido: #{$promocode->id} para orden #{$order->getId()}");
+
             return false;
         }
 
         $finalPrice = $this->priceCalculatorService->calculatePrice($order, $promocode);
 
-        $this->logger->log("Promocode #{$promocode->id} aplicado a orden #{$order->id}. Precio final: {$finalPrice}");
+        $this->logger->log("Promocode #{$promocode->id} aplicado a orden #{$order->getId()}. Precio final: {$finalPrice}");
 
         return true;
     }

@@ -13,6 +13,7 @@ beforeEach(function () {
 
 it('passes when subtotal meets the minimum', function () {
     $order = Mockery::mock(Order::class)->makePartial();
+    $order->shouldReceive('getId')->andReturn($order->id);
     $order->shouldReceive('getSubtotal')->andReturn(100.0);
 
     $promocode = tap(new Promocode, fn ($p) => $p->rules = ['min_purchase_amount' => 50.0]);
@@ -27,6 +28,7 @@ it('passes when subtotal meets the minimum', function () {
 
 it("throws exception when 'La orden no cumple con el subtotal mínimo necesario'", function () {
     $order = Mockery::mock(Order::class)->makePartial();
+    $order->shouldReceive('getId')->andReturn($order->id);
     $order->shouldReceive('getSubtotal')->andReturn(30.0);
 
     $promocode = tap(new Promocode, fn ($p) => $p->rules = ['min_purchase_amount' => 50.0]);
@@ -41,6 +43,7 @@ it("throws exception when 'La orden no cumple con el subtotal mínimo necesario'
 
 it("throws exception when 'El código promocional no tiene definido el mínimo'", function () {
     $order = Mockery::mock(Order::class)->makePartial();
+    $order->shouldReceive('getId')->andReturn($order->id);
 
     $promocode = tap(new Promocode, fn ($p) => $p->rules = ['min_purchase_amount' => 0.0]);
 

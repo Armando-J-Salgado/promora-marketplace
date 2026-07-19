@@ -15,6 +15,7 @@ beforeEach(function () {
 
 it('passes when the customer has no previous orders', function () {
     $order = Mockery::mock(Order::class)->makePartial();
+    $order->shouldReceive('getId')->andReturn($order->id);
     $order->shouldReceive('getOrderContext')->andReturn(new OrderContext(new Customer, [], []));
 
     $promocode = new Promocode;
@@ -30,6 +31,7 @@ it('passes when the customer has no previous orders', function () {
 it("throws exception when 'El código promocional aplica solo para la primera orden del cliente'", function () {
     $order = Mockery::mock(Order::class)->makePartial();
     $order->id = 2; // Current order id
+    $order->shouldReceive('getId')->andReturn(2);
 
     $previousOrder = new Order;
     $previousOrder->id = 1; // Previous order id

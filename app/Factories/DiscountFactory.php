@@ -7,12 +7,12 @@ use App\Discounts\DiscountTemplate;
 use App\Discounts\FixedDiscount;
 use App\Discounts\PercentageDiscount;
 use App\Discounts\TieredDiscount;
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 
 class DiscountFactory
 {
-    public function make(Promocode $promocode, Order $order): DiscountTemplate
+    public function make(Promocode $promocode, OrderableInterface $order): DiscountTemplate
     {
         return match ($promocode->type) {
             'fixed' => new FixedDiscount($order, $promocode),

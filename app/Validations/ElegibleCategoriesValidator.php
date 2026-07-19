@@ -4,13 +4,13 @@ namespace App\Validations;
 
 use App\Logger\Logger;
 use App\Models\Category;
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 use InvalidArgumentException;
 
 class ElegibleCategoriesValidator extends PromocodeValidationHandler
 {
-    public function handle(Order $order, Promocode $promocode): void
+    public function handle(OrderableInterface $order, Promocode $promocode): void
     {
         $categories = $order->getOrderContext()->categoriesId;
 
@@ -44,13 +44,13 @@ class ElegibleCategoriesValidator extends PromocodeValidationHandler
         }
 
         if (! $found) {
-            Logger::getInstance()->log("[FAIL] ElegibleCategoriesValidator | code=invalid_code | promocode=#{$promocode->id} | order=#{$order->id} | La orden no contiene ninguna categoría elegible para este código promocional");
+            Logger::getInstance()->log("[FAIL] ElegibleCategoriesValidator | code=invalid_code | promocode=#{$promocode->id} | order=#{$order->getId()} | La orden no contiene ninguna categoría elegible para este código promocional");
             throw new InvalidArgumentException(
                 'La orden no contiene ninguna categoría elegible para este código promocional'
             );
         }
 
-        Logger::getInstance()->log("[PASS] ElegibleCategoriesValidator | promocode=#{$promocode->id} | order=#{$order->id} | regla superada");
+        Logger::getInstance()->log("[PASS] ElegibleCategoriesValidator | promocode=#{$promocode->id} | order=#{$order->getId()} | regla superada");
         parent::handle($order, $promocode);
     }
 }

@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Factories\DiscountFactory;
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 
 class PriceCalculatorService
 {
-    public function calculatePrice(Order $order, Promocode $promocode): float
+    public function calculatePrice(OrderableInterface $order, Promocode $promocode): float
     {
         $subtotal = $order->getSubtotal();
         $discount = (new DiscountFactory)->make($promocode, $order);

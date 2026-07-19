@@ -3,33 +3,44 @@
 namespace App\Discounts;
 
 use App\Factories\ValidationFactory;
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 use InvalidArgumentException;
 
 abstract class DiscountTemplate
 {
-    protected Order $order;
+    protected OrderableInterface $order;
 
     protected Promocode $promocode;
 
-    public function __construct(Order $order, Promocode $promocode)
+    protected ?float $subtotal = null;
+
+    public function __construct(OrderableInterface $order, Promocode $promocode)
     {
         $this->order = $order;
         $this->promocode = $promocode;
     }
 
+    protected function getSubtotal(): float
+    {
+        if ($this->subtotal === null) {
+            $this->subtotal = $this->order->getSubtotal();
+        }
+
+        return $this->subtotal;
+    }
+
     public function calculatePrice(): float
     {
-        $this->order->getSubtotal();
+        $subtotal = $this->getSubtotal();
 
-        if ($this->order->subtotal <= 0) {
+        if ($subtotal <= 0) {
             return 0.0;
         }
 
         $discount = $this->applyDiscount();
 
-        return $this->validate($discount, $this->order->subtotal);
+        return $this->validate($discount, $subtotal);
     }
 
     protected function validate(float $discount, float $subtotal): float

@@ -9,6 +9,6 @@ class PercentageDiscount extends DiscountTemplate
      */
     protected function applyDiscount(): float
     {
-        return $this->order->subtotal * ($this->promocode->value / 100);
+        return $this->getSubtotal() * ($this->promocode->value / 100);
     }
 }

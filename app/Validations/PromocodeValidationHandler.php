@@ -2,21 +2,22 @@
 
 namespace App\Validations;
 
-use App\Models\Order;
 use App\Models\Promocode;
+use App\Orderable\OrderableInterface;
 
-abstract class PromocodeValidationHandler {
+abstract class PromocodeValidationHandler
+{
     private ?PromocodeValidationHandler $next = null;
 
     public function setNext(
         PromocodeValidationHandler $handler
-    ): PromocodeValidationHandler
-    {
+    ): PromocodeValidationHandler {
         $this->next = $handler;
+
         return $handler;
     }
 
-    public function handle(Order $order, Promocode $promocode): void
+    public function handle(OrderableInterface $order, Promocode $promocode): void
     {
         if ($this->next) {
             $this->next->handle($order, $promocode);

@@ -14,7 +14,6 @@ afterEach(function () {
 });
 
 it('aplica el descuento fijo cuando el subtotal lo permite', function () {
-    $this->order->subtotal = 100.0;
     $this->promocode->value = 10.0;
 
     $this->order->shouldReceive('getSubtotal')->once()->andReturn(100.0);
@@ -25,7 +24,6 @@ it('aplica el descuento fijo cuando el subtotal lo permite', function () {
 });
 
 it('limita el descuento al subtotal cuando el valor del código lo excede', function () {
-    $this->order->subtotal = 5.0;
     $this->promocode->value = 20.0;
 
     $this->order->shouldReceive('getSubtotal')->once()->andReturn(5.0);
@@ -36,7 +34,6 @@ it('limita el descuento al subtotal cuando el valor del código lo excede', func
 });
 
 it('retorna 0 cuando el subtotal es cero', function () {
-    $this->order->subtotal = 0.0;
     $this->promocode->value = 10.0;
 
     $this->order->shouldReceive('getSubtotal')->once()->andReturn(0.0);
@@ -48,7 +45,6 @@ it('retorna 0 cuando el subtotal es cero', function () {
 });
 
 it('retorna 0 cuando el valor del código es cero', function () {
-    $this->order->subtotal = 100.0;
     $this->promocode->value = 0.0;
 
     $this->order->shouldReceive('getSubtotal')->once()->andReturn(100.0);
