@@ -115,4 +115,12 @@ class PromocodeFactory extends Factory
             'value' => $value,
         ]);
     }
+
+    public function tiered(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'tiered',
+            'value' => 0,
+        ]);
+    }
 }

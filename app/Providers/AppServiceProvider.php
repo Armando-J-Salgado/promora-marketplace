@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Logger::class, fn () => Logger::getInstance());
 
-        $this->app->bind(PromocodeEngine::class, function ($app) {
+        $this->app->singleton(PromocodeEngine::class, function ($app) {
             return new PromocodeEngine(
                 $app->make(PromocodeValidationService::class),
                 $app->make(PriceCalculatorService::class),

@@ -4,8 +4,11 @@ namespace App\Discounts;
 
 class FixedDiscount extends DiscountTemplate
 {
+    /**
+     * descuento = min(value, subtotal)
+     */
     protected function applyDiscount(): float
     {
-        return $this->promocode->value;
+        return min($this->promocode->value, $this->order->subtotal);
     }
 }

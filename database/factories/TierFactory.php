@@ -24,4 +24,12 @@ class TierFactory extends Factory
             'promocode_id' => Promocode::factory(),
         ];
     }
+
+    public function withMinOrders(int $minOrders, float $discountValue): static
+    {
+        return $this->state([
+            'minimum_orders' => $minOrders,
+            'discount_value' => $discountValue,
+        ]);
+    }
 }

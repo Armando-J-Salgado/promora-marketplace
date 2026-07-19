@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Promocode;
-use App\Http\Requests\StoreOrderRequest;
-use App\Http\Requests\UpdateOrderRequest;
 use App\PromocodeEngine\PromocodeEngine;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class OrderController extends Controller
 {
@@ -17,26 +17,52 @@ class OrderController extends Controller
 
     public function validate(Order $order, Promocode $promocode): JsonResponse
     {
-        $isValid = $this->promocodeEngine->validateCode($order, $promocode);
+        try {
+            $isValid = $this->promocodeEngine->validateCode($order, $promocode);
 
-        return response()->json([
-            'valid' => $isValid,
+            return response()->json([
+                'valid' => $isValid,
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'valid' => false,
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function index(): JsonResponse
+    {
+        $orders = Order::with(['customer', 'services'])->get();
+
+        return response()->json($orders);
+    }
+
+    public function store(StoreOrderRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $order = Order::create([
+            'customer_id' => $validated['customer_id'],
+            'status' => 'pending',
+            'subtotal' => 0,
+            'total' => 0,
         ]);
+
+        foreach ($validated['services'] as $service) {
+            $order->services()->attach($service['id'], ['quantity' => $service['quantity']]);
+        }
+
+        $order->getSubtotal();
+        $order->load('services', 'customer');
+
+        return response()->json($order, 201);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function show(Order $order): JsonResponse
     {
-        //
-    }
+        $order->load(['customer', 'services']);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return response()->json($order);
     }
 }
