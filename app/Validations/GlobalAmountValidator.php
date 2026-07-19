@@ -2,6 +2,7 @@
 
 namespace App\Validations;
 
+use App\Logger\Logger;
 use App\Models\Order;
 use App\Models\Promocode;
 use App\Models\PromocodeRedemption;
@@ -21,15 +22,18 @@ class GlobalAmountValidator extends PromocodeValidationHandler
         $globalAmountLimit = $promocode->rules['global_amount_limit'] ?? null;
 
         if ($globalAmountLimit === null) {
+            Logger::getInstance()->log("[FAIL] GlobalAmountValidator | code=maximum_discount_reached | promocode=#{$promocode->id} | order=#{$order->id} | El cupón no tiene configurado la cantidad límite global");
             throw new InvalidArgumentException('El cupón no tiene configurado la cantidad límite global');
         }
 
         $totalDiscounted = PromocodeRedemption::where('promocode_id', $promocode->id)->sum('discount_amount');
 
         if (($totalDiscounted + $this->discount) > $globalAmountLimit) {
+            Logger::getInstance()->log("[FAIL] GlobalAmountValidator | code=maximum_discount_reached | promocode=#{$promocode->id} | order=#{$order->id} | El código promocional supera su presupuesto máximo de descuentos");
             throw new InvalidArgumentException('El código promocional supera su presupuesto máximo de descuentos');
         }
 
+        Logger::getInstance()->log("[PASS] GlobalAmountValidator | promocode=#{$promocode->id} | order=#{$order->id} | regla superada");
         parent::handle($order, $promocode);
     }
 }

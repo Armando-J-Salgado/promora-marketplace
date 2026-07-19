@@ -23,4 +23,9 @@ class Logger
     {
         $this->logs[] = $log;
     }
+
+    public function getLogs(): array
+    {
+        return $this->logs;
+    }
 }
