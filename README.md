@@ -1,58 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Promocode Engine
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project implements a robust, extensible, and testable Promocode Engine within a Laravel application. The architecture is designed using several design patterns (Facade, Singleton, Chain of Responsibility, Factory, Template Method) to separate concerns and ensure maintainability.
 
-## About Laravel
+## Architecture and Structure
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The engine is composed of the following key components:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **PromocodeEngine (Facade/Singleton):** Acts as the main entry point for the system. It separates the logic of code validation and application from the controllers by coordinating the necessary underlying services.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **PromocodeValidationService:** Manages the logic for pre-discount calculation validations. It utilizes a `PromocodeHandler` abstract class implementing the Chain of Responsibility (CoR) pattern and a `ValidationFactory` to dynamically build the validation chain.
 
-## Learning Laravel
+- **Validation Classes:** These classes extend the `PromocodeHandler` to incorporate specific validation rules (e.g., global usage limits, user usage limits, expiration dates). If a validation rule fails, the class throws a corresponding error/exception.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **PriceCalculatorService:** Handles the core logic of discount calculation and validates the final amount to be discounted. It leverages a `DiscountTemplate` abstract class and a `DiscountFactory` to resolve the correct discount strategy, while also incorporating the aforementioned validation classes.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Discount Classes:** These classes extend the `DiscountTemplate` abstract class and implement the `applyDiscount` method to calculate the specific value of the discount (e.g., fixed amount, percentage).
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Logger:** Implemented as a Singleton, this utility is crucial for tracking functionality, monitoring operations, and debugging the engine's internal processes.
 
-## Agentic Development
+- **OrderableInterface and OrderContext:** These structures make the Promocode Engine highly decoupled and flexible. By programming against the `OrderableInterface`, the engine can be used interchangeably across different entities that represent an order. The `OrderContext` class is responsible for gathering and passing all necessary information for the discount application process.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Testing and Quality Assurance
 
+- **TDD (Test-Driven Development):** The entire engine was built using TDD principles. Comprehensive test coverage is maintained using **Pest**, including both Unit and Feature tests to ensure reliability across all layers.
+
+## Console Commands / Testing Scenarios
+
+To help introduce and manually test the system's capabilities, custom Artisan commands have been provided:
+
+- **PromocodePlayCommand:** You can execute this command to manually run and test various discount and validation scenarios interactively from the console. 
+
+Run the command using:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan promocode:play
 ```
+*(Check `php artisan list` or the command's help output for any additional arguments or options).*
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Installation and Initialization
 
-## Contributing
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd promora-marketplace
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. **Install PHP dependencies:**
+   ```bash
+   composer install
+   ```
 
-## Code of Conduct
+3. **Environment Setup:**
+   Copy the example `.env` file and generate an application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4. **Database Setup:**
+   Configure your database credentials in the `.env` file. Then, run the migrations and seeders:
+   ```bash
+   php artisan migrate --seed
+   ```
 
-## Security Vulnerabilities
+5. **Serve the Application:**
+   If you are using Laravel Herd, the application will automatically be available at `http://promora-marketplace.test`.
+   Alternatively, you can start the local development server:
+   ```bash
+   php artisan serve
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Project Directory Structure
 
-## License
+Here is a quick overview of the key directories related to the Promocode Engine within this project:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```text
+app/
+├── Console/Commands/
+│   └── PromocodePlayCommand.php      # Command to manually test scenarios
+├── Engine/
+│   ├── PromocodeEngine.php           # Facade/Singleton entry point
+│   ├── OrderContext.php              # Context for the discount application
+│   └── Interfaces/
+│       └── OrderableInterface.php    # Interface for orderable entities
+├── Factories/
+│   ├── DiscountFactory.php           # Resolves discount strategies
+│   └── ValidationFactory.php         # Builds the validation chain
+├── Services/
+│   ├── PriceCalculatorService.php    # Core discount logic
+│   └── PromocodeValidationService.php # Pre-discount validation logic
+├── Validations/                        # Validation classes (CoR)
+│   ├── Handlers/
+│   │   └── PromocodeHandler.php      # Abstract CoR handler
+│   ├── GlobalUsageValidator.php
+│   ├── UserUsageValidator.php
+│   └── ...
+├── Discounts/                          # Discount classes (Template Method)
+│   ├── DiscountTemplate.php          # Abstract template method
+│   ├── FixedDiscount.php
+│   └── PercentageDiscount.php
+└── Utils/
+    └── Logger.php                    # Singleton logger for debugging
+
+tests/
+├── Feature/
+│   └── Validations/                  # Feature tests for validations
+└── Unit/
+    ├── Discount/                     # Unit tests for discount calculations
+    ├── Services/                     # Unit tests for services
+    └── Validations/                  # Unit tests for specific validators
+```
