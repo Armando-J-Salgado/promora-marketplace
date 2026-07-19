@@ -2,65 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
-use App\Http\Requests\UpdateOrderRequest;
+use App\Models\Order;
+use App\Models\Promocode;
+use App\PromocodeEngine\PromocodeEngine;
+use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        private PromocodeEngine $promocodeEngine,
+    ) {}
+
+    public function validate(Order $order, Promocode $promocode): JsonResponse
     {
-        //
+        try {
+            $isValid = $this->promocodeEngine->validateCode($order, $promocode);
+
+            return response()->json([
+                'valid' => $isValid,
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'valid' => false,
+                'error' => $e->getMessage(),
+            ], 422);
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index(): JsonResponse
     {
-        //
+        $orders = Order::with(['customer', 'services'])->get();
+
+        return response()->json($orders);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreOrderRequest $request)
+    public function store(StoreOrderRequest $request): JsonResponse
     {
-        //
+        $validated = $request->validated();
+
+        $order = Order::create([
+            'customer_id' => $validated['customer_id'],
+            'status' => 'pending',
+            'subtotal' => 0,
+            'total' => 0,
+        ]);
+
+        foreach ($validated['services'] as $service) {
+            $order->services()->attach($service['id'], ['quantity' => $service['quantity']]);
+        }
+
+        $order->getSubtotal();
+        $order->load('services', 'customer');
+
+        return response()->json($order, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Order $order)
+    public function show(Order $order): JsonResponse
     {
-        //
-    }
+        $order->load(['customer', 'services']);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateOrderRequest $request, Order $order)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
-    {
-        //
+        return response()->json($order);
     }
 }

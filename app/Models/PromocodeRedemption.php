@@ -13,6 +13,12 @@ class PromocodeRedemption extends Model
     /** @use HasFactory<\Database\Factories\PromocodeRedemptionFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'promocode_id',
+        'order_id',
+        'discount_amount',
+    ];
+
     public function order(): BelongsTo {
         return $this->belongsTo(Order::class);
     }

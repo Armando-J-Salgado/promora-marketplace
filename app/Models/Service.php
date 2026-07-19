@@ -14,8 +14,14 @@ class Service extends Model
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        "id",
+        "name",
+        "price",
+    ];
+
     public function orders(): BelongsToMany {
-        return $this->belongsToMany(Order::class);
+        return $this->belongsToMany(Order::class)->withPivot('quantity');
     }
 
     public function category(): BelongsTo {
