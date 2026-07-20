@@ -15,7 +15,6 @@ use Illuminate\Console\Command;
 use InvalidArgumentException;
 
 use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\pause;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -110,13 +109,11 @@ class PromocodePlayCommand extends Command
     }
 
     /**
-     * @return array{0: Order, 1: Promocode}
+     * @return list<string>
      */
-    private function buildScenario(): array
+    private function chooseRules(): array
     {
-        $type = select('Tipo de código', ['fixed', 'percent', 'tiered'], default: 'fixed');
-
-        $ruleKeys = multiselect('Reglas configurables a activar', [
+        $ruleOptions = [
             'min_purchase_amount' => 'Monto mínimo de compra',
             'elegible_categories' => 'Categorías elegibles',
             'first_order_only' => 'Solo primera orden',
@@ -125,7 +122,40 @@ class PromocodePlayCommand extends Command
             'global_amount_limit' => 'Límite de monto global',
             'restricted_usage' => 'Uso restringido a clientes específicos',
             'max_discount_amount' => 'Descuento máximo',
-        ]);
+        ];
+
+        $selected = [];
+
+        while (true) {
+            $menu = [];
+            foreach ($ruleOptions as $key => $label) {
+                $mark = in_array($key, $selected, true) ? '[x]' : '[ ]';
+                $menu[$key] = "{$mark} {$label}";
+            }
+            $menu['__continue'] = '>> Aceptar y continuar con las reglas seleccionadas';
+
+            $choice = select('Reglas configurables a activar (elige una para activarla/desactivarla)', $menu);
+
+            if ($choice === '__continue') {
+                break;
+            }
+
+            $selected = in_array($choice, $selected, true)
+                ? array_values(array_diff($selected, [$choice]))
+                : [...$selected, $choice];
+        }
+
+        return $selected;
+    }
+
+    /**
+     * @return array{0: Order, 1: Promocode}
+     */
+    private function buildScenario(): array
+    {
+        $type = select('Tipo de código', ['fixed', 'percent', 'tiered'], default: 'fixed');
+
+        $ruleKeys = $this->chooseRules();
 
         $stateOverride = null;
         if (confirm('¿Simular un estado no estándar (pausado / caducado / aún no vigente)?', default: false)) {
