@@ -38,9 +38,13 @@ php artisan promocode:play --demo --no-pause
 | `GlobalUsageValidator` | `usage_limit_reached` |
 | `RestrictedUsageValidator` | `restricted_usage` |
 | `GlobalAmountValidator` | `maximum_discount_reached` |
-| `MaxDiscountValidator` | `maximum_discount_reached` (ver limitación conocida abajo) |
+| `MaxDiscountValidator` | `maximum_discount_reached` |
 
-**Limitación conocida**: `PromocodeValidationService::validate()` nunca calcula el descuento real antes de armar la cadena (siempre pasa `0.0` a `ValidationFactory::make()`). Por eso el caso "bloqueado" de `MaxDiscountValidator` en la demo solo puede mostrar la rama de *regla mal configurada* (`max_discount_amount` no definido), no la rama de *descuento que sobrepasa el límite* — esa rama es inalcanzable por la cadena real tal como está hoy. Es un bug preexistente, documentado, y está fuera de alcance de esta herramienta.
+**Nota de diseño**: `GlobalAmountValidator` y `MaxDiscountValidator` no son parte de la cadena de `PromocodeValidationService` — son un paso del Template Method de `DiscountTemplate` (Fase 2 — Cálculo), que corre después de calcular el descuento. Por eso `promocode:play` valida a través de `PromocodeEngine::validateCode()` (Fase 1 + Fase 2, la misma ruta que usa el endpoint HTTP real), no solo del servicio de validación — así el descuento real sí se calcula y se usa.
+
+Por diseño del motor, exceder `max_discount_amount` *cappea* el descuento en vez de bloquear la orden (solo `global_amount_limit` relanza la excepción). Por eso el caso "bloqueado" de `MaxDiscountValidator` en la demo solo puede representar la rama de *regla mal configurada* (`max_discount_amount` no definido), nunca la de "descuento que sobrepasa el límite" — es comportamiento de negocio real, no una limitación de la herramienta.
+
+`PromocodeValidationService` internamente sigue incluyendo estas dos reglas en su propia cadena (Fase 1, con discount fijo en `0.0`) — es una redundancia conocida del motor, fuera del alcance de esta herramienta.
 
 ## Modo interactivo (armar tu propio escenario)
 

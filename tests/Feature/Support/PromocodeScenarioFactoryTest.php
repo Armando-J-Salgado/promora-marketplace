@@ -1,16 +1,16 @@
 <?php
 
-use App\Services\PromocodeValidationService;
+use App\PromocodeEngine\PromocodeEngine;
 use App\Support\Promocode\PromocodeScenarioFactory;
 
 it('builds a blocked and an allowed scenario for each of the 11 validators', function (string $method) {
     $scenario = (new PromocodeScenarioFactory)->$method();
-    $service = new PromocodeValidationService;
+    $engine = app(PromocodeEngine::class);
 
-    expect(fn () => $service->validate($scenario['blocked']->order, $scenario['blocked']->promocode))
+    expect(fn () => $engine->validateCode($scenario['blocked']->order, $scenario['blocked']->promocode))
         ->toThrow(InvalidArgumentException::class);
 
-    expect($service->validate($scenario['allowed']->order, $scenario['allowed']->promocode))
+    expect($engine->validateCode($scenario['allowed']->order, $scenario['allowed']->promocode))
         ->toBeTrue();
 })->with([
     'existence',
