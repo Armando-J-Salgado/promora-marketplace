@@ -9,6 +9,7 @@ use App\Orderable\OrderableInterface;
 class PromocodeValidationService
 {
     private array $permanentRules = ['existence', 'validity', 'state'];
+    private array $postCalculationRules = ['max_discount_amount', 'global_amount_limit'];
 
     public function validate(OrderableInterface $order, Promocode $promocode): bool
     {
@@ -27,6 +28,9 @@ class PromocodeValidationService
         }
 
         foreach ($promocode->rules as $key => $value) {
+            if (in_array($key, $this->postCalculationRules)) {
+                continue;
+            }
             $validation = ValidationFactory::make($key);
             $currentHandler = $currentHandler->setNext($validation);
         }
