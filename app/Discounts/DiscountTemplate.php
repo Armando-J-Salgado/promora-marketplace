@@ -50,7 +50,7 @@ abstract class DiscountTemplate
         $postCalculationRules = ['max_discount_amount', 'global_amount_limit'];
 
         foreach ($postCalculationRules as $rule) {
-            if (! isset($rules[$rule])) {
+            if (! array_key_exists($rule, $rules)) {
                 continue;
             }
 
@@ -64,6 +64,10 @@ abstract class DiscountTemplate
                 }
 
                 if ($rule === 'max_discount_amount') {
+                    if ($rules['max_discount_amount'] === null) {
+                        throw $e;
+                    }
+
                     $discount = (float) $rules['max_discount_amount'];
                 }
             }
