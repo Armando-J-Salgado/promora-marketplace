@@ -210,22 +210,16 @@ class PromocodeScenarioFactory
         $blockedPromocode = Promocode::factory()->withGlobalAmountLimit(50)->create();
         PromocodeRedemption::factory()->create(['promocode_id' => $blockedPromocode->id, 'discount_amount' => 100]);
 
-        $allowedPromocode = Promocode::factory()->withGlobalAmountLimit(50)->create();
+        $allowedPromocode = Promocode::factory()->withGlobalAmountLimit(50)->fixed(5)->create();
         PromocodeRedemption::factory()->create(['promocode_id' => $allowedPromocode->id, 'discount_amount' => 10]);
 
         return [
-            'blocked' => new PromocodeScenario(Order::factory()->create(), $blockedPromocode),
-            'allowed' => new PromocodeScenario(Order::factory()->create(), $allowedPromocode),
+            'blocked' => new PromocodeScenario($this->orderWithService(), $blockedPromocode),
+            'allowed' => new PromocodeScenario($this->orderWithService(), $allowedPromocode),
         ];
     }
 
     /**
-     * Nota: la rama "sobrepasa el límite" de MaxDiscountValidator depende del monto de
-     * descuento real, que PromocodeValidationService nunca calcula (siempre pasa 0.0 a
-     * ValidationFactory::make()). Por eso el caso bloqueado solo puede demostrarse vía la
-     * rama de configuración faltante (rules['max_discount_amount'] = null); es una
-     * limitación conocida y documentada, no un bug de este comando.
-     *
      * @return array{blocked: PromocodeScenario, allowed: PromocodeScenario}
      */
     public function maxDiscount(): array
@@ -234,11 +228,19 @@ class PromocodeScenarioFactory
             'rules' => array_merge($attributes['rules'] ?? [], ['max_discount_amount' => null]),
         ])->create();
 
-        $allowedPromocode = Promocode::factory()->withMaxDiscount(20)->create();
+        $allowedPromocode = Promocode::factory()->withMaxDiscount(20)->fixed(10)->create();
 
         return [
-            'blocked' => new PromocodeScenario(Order::factory()->create(), $blockedPromocode),
-            'allowed' => new PromocodeScenario(Order::factory()->create(), $allowedPromocode),
+            'blocked' => new PromocodeScenario($this->orderWithService(), $blockedPromocode),
+            'allowed' => new PromocodeScenario($this->orderWithService(), $allowedPromocode),
         ];
+    }
+
+    private function orderWithService(): Order
+    {
+        $order = Order::factory()->create();
+        $order->services()->attach(Service::factory()->create(['price' => 100])->id, ['quantity' => 1]);
+
+        return $order;
     }
 }

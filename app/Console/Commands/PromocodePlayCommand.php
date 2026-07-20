@@ -9,7 +9,7 @@ use App\Models\Order;
 use App\Models\Promocode;
 use App\Models\PromocodeRedemption;
 use App\Models\Service;
-use App\Services\PromocodeValidationService;
+use App\PromocodeEngine\PromocodeEngine;
 use App\Support\Promocode\PromocodeScenarioFactory;
 use Illuminate\Console\Command;
 use InvalidArgumentException;
@@ -27,16 +27,16 @@ class PromocodePlayCommand extends Command
 
     protected $description = 'Prueba en vivo el motor de códigos promocionales: arma un escenario interactivo o corre el recorrido automático por las 11 reglas de validación';
 
-    public function handle(PromocodeValidationService $validationService, PromocodeScenarioFactory $scenarioFactory): int
+    public function handle(PromocodeEngine $engine, PromocodeScenarioFactory $scenarioFactory): int
     {
         if ($this->option('demo')) {
-            return $this->runDemo($validationService, $scenarioFactory);
+            return $this->runDemo($engine, $scenarioFactory);
         }
 
-        return $this->runInteractive($validationService);
+        return $this->runInteractive($engine);
     }
 
-    private function runDemo(PromocodeValidationService $validationService, PromocodeScenarioFactory $scenarioFactory): int
+    private function runDemo(PromocodeEngine $engine, PromocodeScenarioFactory $scenarioFactory): int
     {
         $this->info('=== DEMO — 11 validators x 2 corridas (bloqueado + permitido) ===');
 
@@ -52,7 +52,7 @@ class PromocodePlayCommand extends Command
                 $failureMessage = null;
 
                 try {
-                    $validationService->validate($target->order, $target->promocode);
+                    $engine->validateCode($target->order, $target->promocode);
                 } catch (InvalidArgumentException $e) {
                     $actuallyValid = false;
                     $failureMessage = $e->getMessage();
@@ -83,7 +83,7 @@ class PromocodePlayCommand extends Command
         return $allMatched ? self::SUCCESS : self::FAILURE;
     }
 
-    private function runInteractive(PromocodeValidationService $validationService): int
+    private function runInteractive(PromocodeEngine $engine): int
     {
         $this->info('=== Promocode Engine — Playground interactivo ===');
 
@@ -93,7 +93,7 @@ class PromocodePlayCommand extends Command
             $startIndex = count(Logger::getInstance()->getLogs());
 
             try {
-                $validationService->validate($order, $promocode);
+                $engine->validateCode($order, $promocode);
                 $this->info("VÁLIDO — promocode #{$promocode->id} aceptado para orden #{$order->id}");
             } catch (InvalidArgumentException $e) {
                 $this->error("BLOQUEADO — {$e->getMessage()}");
