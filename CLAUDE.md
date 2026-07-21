@@ -40,7 +40,7 @@ Flujo HTTP: `routes/api.php` → `POST v1/orders/{order}/promocode/{promocode}` 
 
 ### Estado actual (WIP)
 
-- `PriceCalculatorService` es un stub pendiente de implementar.
+- `PriceCalculatorService` ya está implementado y testeado (`subtotal - descuento`, con piso en 0).
 - Controllers, Policies y Form Requests son scaffolds vacíos, salvo `OrderController::validate` que ya está implementado.
 
 ## AGENTS.md
